@@ -43,7 +43,7 @@ pub enum EscrowInstruction {
     ///
     /// Accounts expected:
     ///
-    /// 0. `[signer]` The account of the person initializing the escrow
+    /// 0. `[signer]` The account of the person initialized the escrow
     /// 1. `[writable]` The PDA's temp token account to get tokens from and eventually close
     /// 2. `[writable]` The initializer's token account that will get tokens back
     /// 3. `[writable]` The escrow account holding the escrow info
