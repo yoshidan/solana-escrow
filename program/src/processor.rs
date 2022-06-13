@@ -209,6 +209,8 @@ impl Processor {
         }
 
         let pdas_temp_token_account = next_account_info(account_info_iter)?;
+        let pdas_temp_token_account_info =
+            TokenAccount::unpack(&pdas_temp_token_account.try_borrow_data()?)?;
         let initializer_token_return_account = next_account_info(account_info_iter)?;
         let escrow_account = next_account_info(account_info_iter)?;
         let escrow_info = Escrow::unpack(&escrow_account.try_borrow_data()?)?;
@@ -231,7 +233,7 @@ impl Processor {
             initializer_token_return_account.key,
             &pda,
             &[&pda],
-            escrow_info.expected_amount,
+            pdas_temp_token_account_info.amount,
         )?;
         msg!("Calling the token program to transfer tokens to the initializer...");
         invoke_signed(

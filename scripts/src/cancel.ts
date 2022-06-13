@@ -5,7 +5,6 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import BN = require("bn.js");
 import {
   EscrowLayout,
   ESCROW_ACCOUNT_DATA_LAYOUT,
@@ -35,18 +34,12 @@ const cancel = async () => {
     encodedEscrowState
   ) as EscrowLayout;
   const escrowState = {
-    escrowAccountPubkey: escrowStateAccountPubkey,
-    isInitialized: !!decodedEscrowLayout.isInitialized,
     initializerAccountPubkey: new PublicKey(
       decodedEscrowLayout.initializerPubkey
     ),
     XTokenTempAccountPubkey: new PublicKey(
       decodedEscrowLayout.initializerTempTokenAccountPubkey
     ),
-    initializerYTokenAccount: new PublicKey(
-      decodedEscrowLayout.initializerReceivingTokenAccountPubkey
-    ),
-    expectedAmount: new BN(decodedEscrowLayout.expectedAmount, 10, "le"),
   };
 
   const PDA = await PublicKey.findProgramAddress(
@@ -56,6 +49,7 @@ const cancel = async () => {
 
   const cancelInstruction = new TransactionInstruction({
     programId: escrowProgramId,
+    data: Buffer.from(Uint8Array.of(2)),
     keys: [
       {
         pubkey: escrowState.initializerAccountPubkey,
@@ -80,7 +74,7 @@ const cancel = async () => {
 
   const [aliceXbalance, escrowXbalance] = await Promise.all([
     getTokenBalance(aliceXTokenAccountPubkey, connection),
-    getTokenBalance(escrowStateAccountPubkey, connection),
+    getTokenBalance(escrowState.XTokenTempAccountPubkey, connection),
   ]);
 
   console.log("Sending cancel transaction...");
@@ -118,7 +112,15 @@ const cancel = async () => {
   console.log(
     "✨Cancel successfully executed. All temporary accounts closed✨\n"
   );
-  console.log(`Alice Token Account X: ${aliceXbalance}`);
+  console.table([
+    {
+      "Alice Token Account X": newAliceXbalance,
+      "Alice Token Account Y": await getTokenBalance(
+        getPublicKey("alice_y"),
+        connection
+      ),
+    },
+  ]);
 };
 
 cancel();
